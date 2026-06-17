@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programa Feedback | Álbum da Jornada</title>
+<style>
+  :root{
+    --red:#D72525;
+    --red-dark:#A41818;
+    --navy:#0E2F5A;
+    --navy-dark:#0A2347;
+    --slot:#E2E1E3;
+    --slot-line:#cfced1;
+    --ink:#0E2F5A;
+    --paper:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, #143a6b 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, #5a1414 0%, transparent 45%),
+      #0A2347;
+    color:var(--ink);
+    height:100%;
+    overflow:hidden;
+  }
+  .viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    width:100%;max-width:1180px;display:flex;align-items:center;justify-content:space-between;
+    gap:14px;margin-bottom:14px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;color:#fff}
+  .brand b{font-size:22px;font-weight:800;letter-spacing:.3px;color:#fff}
+  .brand b i{color:#F25C5C;font-style:normal}
+  .brand small{display:block;font-size:10px;letter-spacing:3px;color:#b9c8de;font-weight:600;margin-top:-3px}
+  .tools{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{
+    border:0;cursor:pointer;font-weight:700;font-size:13px;border-radius:999px;
+    padding:10px 16px;color:#fff;background:var(--red);transition:.15s transform,.15s filter;
+    display:inline-flex;align-items:center;gap:7px;
+  }
+  .btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+  .btn.ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+  .btn.ghost:hover{background:rgba(255,255,255,.2)}
+
+  /* ---------- book ---------- */
+  .stage{
+    width:980px;height:680px;display:flex;justify-content:center;align-items:center;
+    perspective:2600px;transform-origin:center center;
+  }
+  .book{
+    position:relative;
+    width:980px;height:680px;
+    transform-style:preserve-3d;
+    transition:transform .6s ease;
+    transform:translateX(-245px);
+  }
+  .leaf{
+    position:absolute;top:0;left:50%;width:490px;height:680px;
+    transform-style:preserve-3d;transform-origin:left center;
+    transition:transform 1s cubic-bezier(.4,.05,.2,1);
+  }
+  .leaf.flipped{transform:rotateY(-180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--paper);overflow:hidden;
+    box-shadow:0 24px 50px rgba(0,0,0,.4);
+  }
+  .face.back{transform:rotateY(180deg)}
+  .face .pageno{position:absolute;bottom:10px;font-size:10px;color:#b3aec2;font-weight:700;letter-spacing:1px}
+  .face.front .pageno{right:16px}
+  .face.back .pageno{left:16px}
+
+  /* page inner padding */
+  .pg{position:absolute;inset:0;padding:30px 30px 34px;display:flex;flex-direction:column}
+
+  /* ---------- decorative pill pattern ---------- */
+  .pills{position:absolute;inset:0;overflow:hidden;z-index:0}
+  .pill{position:absolute;border-radius:80px;opacity:.9}
+
+  /* ---------- cover ---------- */
+  .cover{background:var(--navy);color:#fff}
+  .cover .yr{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:430px;font-weight:900;color:rgba(255,255,255,.06);letter-spacing:-20px;line-height:1;
+  }
+  .cover .cell{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+  .cup{font-size:110px;line-height:1;filter:drop-shadow(0 10px 20px rgba(0,0,0,.4))}
+  .cover h1{font-size:38px;font-weight:900;letter-spacing:1px}
+  .cover .sub{font-size:14px;letter-spacing:5px;color:#9fb6d4;font-weight:600;text-transform:uppercase}
+  .cover .tag{margin-top:18px;font-size:12px;color:#b9c8de;max-width:300px}
+  .cover .logo-bottom{position:absolute;bottom:30px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:6px;color:#9fb6d4;font-weight:600;font-size:11px;z-index:2;letter-spacing:2px;text-transform:uppercase}
+  .cover .logo-big{font-size:58px;font-weight:900;line-height:.92;color:#fff;letter-spacing:1px}
+  .cover .logo-big i{color:#F25C5C;font-style:normal;display:block}
+  .cover .logo-rule{width:90px;height:5px;background:#F25C5C;border-radius:3px;margin:14px auto 6px}
+
+  /* ---------- back cover: missão/visão/valores/atitudes ---------- */
+  .mvv{position:relative;z-index:2;width:100%;height:100%}
+  .mvc{position:absolute;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:30px}
+  .mvc.red{background:var(--red)}
+  .mvc.navy{background:var(--navy)}
+  .mvc h3{font-size:16px;font-weight:900;letter-spacing:1.5px;margin-bottom:7px}
+  .mvc p{font-size:8.5px;line-height:1.35}
+  .mvc ul{list-style:none;font-size:8.5px;line-height:1.5;padding:0;margin:0}
+  .mvc-foot{position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:3;font-size:11px;font-weight:800;color:var(--navy);letter-spacing:1px}
+  .mvc-foot i{color:var(--red);font-style:normal}
+
+  /* ---------- generic page header ---------- */
+  .ph{position:relative;z-index:2;display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .ph .num{
+    width:54px;height:54px;border-radius:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:900;font-size:24px;box-shadow:0 6px 14px rgba(0,0,0,.18)
+  }
+  .ph .txt h2{font-size:19px;font-weight:900;color:var(--ink);line-height:1.05}
+  .ph .txt h2 .part{font-size:12px;font-weight:700;color:#8a93a3}
+  .ph .txt p{font-size:11px;color:#6b6580;margin-top:3px;max-width:330px;line-height:1.3}
+
+  /* sticker grid */
+  .grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:12px 12px;flex:1;align-content:start;overflow:hidden;padding-right:2px}
+  .slot{display:flex;flex-direction:column;align-items:center}
+  .photo{
+    width:100%;aspect-ratio:1/1.15;border-radius:8px;background:var(--slot);
+    border:2px solid var(--slot-line);position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .photo img{width:100%;height:100%;object-fit:cover}
+  .photo .ph-ico{font-size:26px;opacity:.35}
+  .photo .initials,.photo .fallback{font-size:24px;font-weight:800;color:#fff}
+  .slot .nm{margin-top:6px;font-size:10px;font-weight:800;color:var(--ink);text-align:center;text-transform:uppercase;letter-spacing:.2px;line-height:1.12}
+  .slot .cg{font-size:8.5px;color:#8a8f9c;text-align:center;margin-top:2px;line-height:1.05}
+  .count{position:absolute;top:30px;right:30px;z-index:3;font-size:11px;font-weight:800;color:#fff;background:rgba(0,0,0,.18);padding:4px 10px;border-radius:999px}
+
+  /* journey summary page */
+  .jmap{position:relative;z-index:2;display:flex;flex-direction:column;gap:7px;flex:1;justify-content:center}
+  .jrow{display:flex;align-items:center;gap:11px;background:#f5f7fa;border:1px solid #e6ebf1;border-radius:10px;padding:8px 11px}
+  .jrow .jn{width:30px;height:30px;border-radius:8px;flex:0 0 auto;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .jrow .ji b{font-size:12.5px;color:var(--ink);display:block;line-height:1.15}
+  .jrow .ji span{font-size:10px;color:#6f7d90}
+  .lead{position:relative;z-index:2;font-size:12px;color:#6b6580;margin-bottom:6px;line-height:1.4}
+
+  .badge-illus{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:4;font-size:9px;letter-spacing:1.5px;background:#31234C;color:#fff;padding:3px 10px;border-radius:999px;opacity:.85;text-transform:uppercase;font-weight:700}
+
+  /* closing page */
+  .closing{background:var(--red);color:#fff}
+  .closing .cell{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:40px}
+  .closing h2{font-size:30px;font-weight:900}
+  .closing p{font-size:13px;max-width:330px;line-height:1.5;color:#ffe2e4}
+
+  .backcover{background:var(--navy);color:#fff}
+  .backcover .cell{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
+
+  /* ---------- nav ---------- */
+  .nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;
+    background:rgba(20,12,36,.72);backdrop-filter:blur(8px);padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.14);z-index:50}
+  .nav button{width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;background:var(--red);color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .nav button:disabled{opacity:.3;cursor:default}
+  .nav .pos{color:#fff;font-size:12px;font-weight:700;min-width:120px;text-align:center}
+
+  .hint{color:#bcaedd;font-size:11.5px;margin-top:10px;text-align:center}
+
+  /* responsive scale */
+  /* a escala do álbum é ajustada via JS (fitAlbum) para preencher a janela */
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+  <div class="viewport">
+    <div class="stage">
+      <div class="book" id="book"></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="prev" onclick="prevPage()">‹</button>
+    <div class="pos" id="pos"></div>
+    <button id="next" onclick="nextPage()">›</button>
+  </div>
+
+<script>
+/* ====================== DADOS ====================== */
+/* Etapas reais da jornada end-to-end do Programa Feedback (times do álbum) */
+const C_NAVY="#0E2F5A", C_RED="#D72525";
+const STAGES = [
+  {n:1, nome:"Comercial e Contratação",            desc:"Prospecção comercial e fechamento do contrato com o cliente.", raw:C_NAVY},
+  {n:2, nome:"Planejamento da Campanha",           desc:"Definição de escopo, roteiros e alocação da equipe.",          raw:C_RED},
+  {n:3, nome:"Jornada do Colaborador",             desc:"Recrutamento, admissão e integração do colaborador.",          raw:C_NAVY},
+  {n:4, nome:"Suporte ao Colaborador",             desc:"Benefícios, pagamentos e suporte ao colaborador em campo.",    raw:C_RED},
+  {n:5, nome:"Supervisão e Gestão de Rotina",      desc:"Rotinas de supervisão e gestão do dia a dia da operação.",     raw:C_NAVY},
+  {n:6, nome:"Execução em PDV",                    desc:"Execução da reposição no ponto de venda.",                     raw:C_RED},
+  {n:7, nome:"Apuração e Resultado",               desc:"Apuração de resultados e indicadores da campanha.",            raw:C_NAVY},
+  {n:8, nome:"Fechamento Financeiro e Encerramento", desc:"Fechamento financeiro e encerramento da campanha.",          raw:C_RED},
+];
+STAGES.forEach(s=>s.color=s.raw);
+
+/* Dados de exemplo ilustrativos (substituídos ao importar CSV) */
+let PEOPLE = [
+  {nome:"William Amaral", cargo:"Coordenador de Relacionamento", etapa:7},
+  {nome:"Fabiana Garcia", cargo:"Diretor", etapa:1},
+  {nome:"Wolneia Amaral", cargo:"Vendedor III", etapa:1},
+  {nome:"Paulo Sanches", cargo:"Analista de Operações Júnior", etapa:5},
+  {nome:"Mateus Gracas", cargo:"Analista de Relacionamento Jr", etapa:7},
+  {nome:"Felipe Cerqueira", cargo:"Coordenador Trade Marketing", etapa:2},
+  {nome:"Guilherme Neves", cargo:"Coordenador Trade Marketing", etapa:2},
+  {nome:"Antonio Neto", cargo:"Diretor", etapa:1},
+  {nome:"Ana Queiroz", cargo:"Analista de Operações Júnior", etapa:5},
+  {nome:"Ariel Ambrosio", cargo:"Coordenador de Backoffice", etapa:5},
+  {nome:"Katia Prado", cargo:"Vendedor III", etapa:1},
+  {nome:"Daniela Silva", cargo:"Supervisor Administrativo", etapa:1},
+  {nome:"Cairo Moreira", cargo:"Coordenador Trade Marketing", etapa:2},
+  {nome:"Fernanda Pereira", cargo:"Analista de Operações Pl", etapa:5},
+  {nome:"Leandra Goncalves", cargo:"Analista de ADM Pessoal Pl", etapa:3},
+  {nome:"Kerven Sandes", cargo:"Analista de Relacionamento Pl", etapa:7},
+  {nome:"Gabriela Penzin", cargo:"Analista de RH Pl", etapa:3},
+  {nome:"Talita Moura", cargo:"Analista de Operações Pl", etapa:5},
+  {nome:"Gabriela Goncalves", cargo:"Analista de Operações Pl", etapa:5},
+  {nome:"Nathaly Santos", cargo:"Analista de Operações Pl", etapa:5},
+  {nome:"Carolina Borges", cargo:"Recepcionista", etapa:4},
+  {nome:"Fabiane Silva", cargo:"Supervisor Financeiro", etapa:8},
+  {nome:"Ana Marinho", cargo:"Auxiliar de Estoque I", etapa:6},
+  {nome:"Matheus Menezes", cargo:"Assistente de Operações", etapa:5},
+  {nome:"Claudio Goncalves", cargo:"Analista de Gestão Pl", etapa:5},
+  {nome:"Marcelo Iwashe", cargo:"Gerente Financeiro", etapa:8},
+  {nome:"Luciene Souza", cargo:"Analista de ADM Pessoal Sr", etapa:3},
+  {nome:"Jorge Morais", cargo:"Analista de RH Pl", etapa:3},
+  {nome:"Gustavo Carvalho", cargo:"Analista Gestão Comercial Pl", etapa:1},
+  {nome:"Janseana Costa", cargo:"Assistente ADM de Pessoal", etapa:3},
+  {nome:"Debora Barbosa", cargo:"Analista de Benefícios", etapa:8},
+  {nome:"Bruna Amorim", cargo:"Analista Comercial Jr", etapa:1},
+  {nome:"Vinicius Silva", cargo:"Vendedor I", etapa:1},
+  {nome:"Kamila Amaro", cargo:"Analista de RH Jr", etapa:3},
+  {nome:"Kesia Guerra", cargo:"Analista de RH Jr", etapa:3},
+  {nome:"Eloa Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Kelly Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Luiza Neves", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Maria Fernandes", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Melyssa Santana", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Victor Rocha", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Vitoria Figueiredo", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Yasmim Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Victor Lima", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Matheus Oliveira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Anna Carvalho", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Ayandra Ferreira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Diego Santos", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Dyogo Oliveira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Gabrieli Ciriaco", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Gabriel Santos", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Gabriel Jesus", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Izabelle Rocha", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Ketlen Soares", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Leonardo Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Lucas Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Maria Andrade", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Melissa Vidal", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Paloma Viana", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Raphael Santos", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Vitoria Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Yuri Santos", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Karine Ferreira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Pedro Cancado", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Guilherme Pereira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Poliana Canuto", cargo:"Auxiliar de Serviços Gerais", etapa:4},
+  {nome:"Brenda Sousa", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Eduarda Souza", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Hadassa Jesus", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Isadora Nascimento", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Joao Magalhaes", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Luiz Martins", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Mayara Dias", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Maria Moreira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Melyssa Reis", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Micaelly Nogueira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Emanuel Costa", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Helloysa Fernandes", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Emily Souza", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Marco Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Nathan Oliveira", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Plinio Neto", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Ruth Morales", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Safyra Mota", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Sthefany Rafael", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Vinicius Carneiro", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Rhuan Souza", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Maria Alves", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Rebeca Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Maria Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Ana Silva", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Luiz Costa", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Fernando Junior", cargo:"Aprendiz Repositor Mercadorias", etapa:6},
+  {nome:"Lisangela Sacramento", cargo:"Supervisor ADM Pessoal", etapa:3},
+  {nome:"Juliana Berto", cargo:"Analista Comercial Jr", etapa:1},
+  {nome:"Wellington Rigosino", cargo:"Vendedor III", etapa:1},
+  {nome:"Aline Baptista", cargo:"Assistente ADM de Pessoal", etapa:3},
+  {nome:"Nathaniel Guaitolini", cargo:"Analista de RH Jr", etapa:3},
+  {nome:"Helder Costa", cargo:"Analista Financeiro Pl", etapa:8},
+  {nome:"Wevertton Zeferino", cargo:"Vendedor II", etapa:1},
+  {nome:"Andre Marques", cargo:"Coordenador de Backoffice", etapa:5},
+  {nome:"Graziela Silva", cargo:"Vendedor I", etapa:1},
+];
+
+/* ====================== RENDER ====================== */
+const PALETTE = ["#D72525","#0E2F5A","#A41818","#1A3B6E"];
+function initials(name){
+  const p=name.trim().split(/\s+/);
+  return ((p[0]||"")[0]||"")+((p[p.length-1]||"")[0]||"");
+}
+function colorFor(name){
+  let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))%PALETTE.length;
+  return PALETTE[h];
+}
+function pillBg(raw){
+  // decorative rounded pill pattern in stage color
+  const c=raw;
+  return `
+    <div class="pills">
+      <div class="pill" style="width:320px;height:170px;background:${c};top:-60px;right:-80px;opacity:.16"></div>
+      <div class="pill" style="width:260px;height:260px;background:${c};bottom:-120px;left:-90px;opacity:.10"></div>
+      <div class="pill" style="width:120px;height:120px;background:${c};bottom:40px;right:-50px;opacity:.13"></div>
+    </div>`;
+}
+function slotHTML(p){
+  const ini=initials(p.nome).toUpperCase();
+  const col=colorFor(p.nome);
+  const inner = p.foto_url
+    ? `<img src="${p.foto_url}" alt="${p.nome}" onerror="this.style.display='none';this.parentNode.querySelector('.fallback').style.display='flex'">
+       <div class="fallback initials" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${col}">${ini}</div>`
+    : `<div class="initials" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:${col}">${ini}</div>`;
+  return `<div class="slot">
+      <div class="photo">${inner}</div>
+      <div class="nm">${p.nome}</div>
+      <div class="cg">${p.cargo||""}</div>
+    </div>`;
+}
+
+function buildPages(){
+  const pages=[];
+  // 0 - capa
+  pages.push(`<div class="pg cover">
+      <div class="yr">26</div>
+      <div class="cell">
+        <div class="logo-big">PROGRAMA <i>FEEDBACK</i></div>
+        <div class="logo-rule"></div>
+        <div class="sub">Álbum da Jornada</div>
+        <div class="tag">As pessoas que fazem cada etapa da jornada do serviço acontecer, do comercial ao encerramento da campanha.</div>
+      </div>
+      <div class="logo-bottom">Eficiência de Processos e Modelo de Operação</div>
+    </div>`);
+  // 1 - sumário da jornada
+  let jrows="";
+  STAGES.forEach(s=>{ jrows+=`<div class="jrow">
+      <div class="jn" style="background:${s.color}">${s.n}</div>
+      <div class="ji"><b>${s.nome}</b><span>${s.desc}</span></div></div>`; });
+  pages.push(`<div class="pg">
+      ${pillBg("#0E2F5A")}
+      <div class="ph"><div class="num" style="background:var(--navy)">★</div>
+        <div class="txt"><h2>A Jornada do Serviço</h2><p>Oito etapas, um time só. Cada etapa é uma seleção deste álbum.</p></div></div>
+      <p class="lead">Exemplo ilustrativo. Importe a planilha para preencher as figurinhas com as pessoas reais de cada etapa.</p>
+      <div class="jmap">${jrows}</div>
+    </div>`);
+  // paginação das etapas: 12 figurinhas por página (grade 4x3)
+  const PER_PAGE=12;
+  STAGES.forEach(s=>{
+    const ppl=PEOPLE.filter(p=>Number(p.etapa)===s.n).sort((a,b)=>a.nome.localeCompare(b.nome,'pt',{sensitivity:'base'}));
+    const chunks=[];
+    if(!ppl.length) chunks.push([]);
+    else for(let i=0;i<ppl.length;i+=PER_PAGE) chunks.push(ppl.slice(i,i+PER_PAGE));
+    chunks.forEach((ck,ci)=>{
+      const slots=ck.length?ck.map(slotHTML).join(""):`<div style="grid-column:1/-1;color:#aaa;font-size:12px;text-align:center;padding:30px">Sem pessoas nesta etapa ainda.</div>`;
+      const part=chunks.length>1?`<span class="part"> ${ci+1}/${chunks.length}</span>`:"";
+      pages.push(`<div class="pg">
+          ${pillBg(s.raw)}
+          <div class="count">${ppl.length} ${ppl.length===1?'figurinha':'figurinhas'}</div>
+          <div class="ph"><div class="num" style="background:${s.color}">${s.n}</div>
+            <div class="txt"><h2>${s.nome}${part}</h2><p>${s.desc}</p></div></div>
+          <div class="grid">${slots}</div>
+        </div>`);
+    });
+  });
+  // 8 - fechamento
+  pages.push(`<div class="pg closing">
+      <div class="pills"><div class="pill" style="width:300px;height:300px;background:#fff;opacity:.08;top:-100px;left:-90px"></div></div>
+      <div class="cell">
+        <div style="font-size:60px">⚽</div>
+        <h2>Time completo,<br>jornada vencedora.</h2>
+        <p>Cada figurinha é uma pessoa que sustenta o crescimento do Programa Feedback. Obrigado a quem faz acontecer todos os dias.</p>
+      </div>
+    </div>`);
+  // 9 - contracapa: Missão, Visão, Valores e Atitudes
+  pages.push(`<div class="pg" style="padding:0;background:#fff;overflow:hidden">
+      <div class="mvv">
+        <div class="mvc red"  style="left:18px;top:64px;width:262px;height:262px;z-index:2">
+          <h3>MISSÃO</h3>
+          <p>Superar as expectativas de nossos clientes e parceiros com execuções e informações ágeis e precisas, contribuindo para a melhoria de seus resultados.</p>
+        </div>
+        <div class="mvc navy" style="left:212px;top:36px;width:262px;height:262px;z-index:1">
+          <h3>VISÃO</h3>
+          <p>Ser referência no Brasil na prestação de serviço em produtos e merchandising.</p>
+        </div>
+        <div class="mvc navy" style="left:22px;top:344px;width:268px;height:268px;z-index:1">
+          <h3>VALORES</h3>
+          <ul>
+            <li>Idoneidade e transparência em nossas relações;</li>
+            <li>Motivação e relação de nossos colaboradores;</li>
+            <li>Responsabilidade, seriedade e honestidade;</li>
+            <li>Meritocracia.</li>
+          </ul>
+        </div>
+        <div class="mvc red"  style="left:216px;top:356px;width:268px;height:268px;z-index:2">
+          <h3>ATITUDES</h3>
+          <ul>
+            <li>Proatividade;</li>
+            <li>Foco no cliente;</li>
+            <li>Relacionamento no PDV;</li>
+            <li>Excelência na execução;</li>
+            <li>Senso de dono;</li>
+            <li>Trabalho em equipe.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mvc-foot">PROGRAMA <i>FEEDBACK</i></div>
+    </div>`);
+  return pages;
+}
+
+/* ====================== FLIPBOOK ENGINE ====================== */
+let pages=[], current=0; // current = leaf index turned (0 = closed cover)
+const book=document.getElementById('book');
+
+function render(){
+  pages=buildPages();
+  book.innerHTML="";
+  const nLeaves=Math.ceil(pages.length/2);
+  for(let i=0;i<nLeaves;i++){
+    const leaf=document.createElement('div');
+    leaf.className='leaf';
+    leaf.dataset.idx=i;
+    const front=pages[i*2]||"";
+    const back=pages[i*2+1]||`<div class="pg" style="background:#fff"></div>`;
+    leaf.innerHTML=`
+      <div class="face front">${front}<div class="pageno">${i*2+1}</div></div>
+      <div class="face back">${back}<div class="pageno">${i*2+2}</div></div>`;
+    leaf.querySelector('.face.front').addEventListener('click',nextPage);
+    leaf.querySelector('.face.back').addEventListener('click',prevPage);
+    book.appendChild(leaf);
+  }
+  update();
+}
+function update(){
+  const leaves=[...book.querySelectorAll('.leaf')];
+  const n=leaves.length;
+  leaves.forEach((lf,i)=>{
+    if(i<current){ lf.classList.add('flipped'); lf.style.zIndex=i; }
+    else { lf.classList.remove('flipped'); lf.style.zIndex=n-i; }
+  });
+  // center the book in its 3 states: closed cover / open spread / closed back
+  if(current===0) book.style.transform="translateX(-245px)";
+  else if(current===n) book.style.transform="translateX(245px)";
+  else book.style.transform="translateX(0)";
+  document.getElementById('prev').disabled=current===0;
+  document.getElementById('next').disabled=current===n;
+  const totalP=pages.length;
+  let label;
+  if(current===0) label="Capa";
+  else if(current===n) label="Contracapa";
+  else label=`Páginas ${current*2} e ${current*2+1}`;
+  document.getElementById('pos').textContent=label;
+}
+function nextPage(){ const n=book.querySelectorAll('.leaf').length; if(current<n){current++;update();} }
+function prevPage(){ if(current>0){current--;update();} }
+document.addEventListener('keydown',e=>{ if(e.key==='ArrowRight')nextPage(); if(e.key==='ArrowLeft')prevPage(); });
+
+/* ====================== CSV ====================== */
+function parseCSV(text){
+  const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(!lines.length) return [];
+  const headers=splitLine(lines[0]).map(h=>h.trim().toLowerCase());
+  const idx={nome:headers.indexOf('nome'),cargo:headers.indexOf('cargo'),etapa:headers.indexOf('etapa'),foto:headers.findIndex(h=>h.startsWith('foto'))};
+  const out=[];
+  for(let i=1;i<lines.length;i++){
+    const c=splitLine(lines[i]);
+    const nome=(c[idx.nome]||"").trim();
+    if(!nome) continue;
+    let et=(c[idx.etapa]||"").trim();
+    let etapa=resolveStage(et);
+    if(!etapa) continue;
+    out.push({nome,cargo:(c[idx.cargo]||"").trim(),etapa,foto_url:(idx.foto>=0?(c[idx.foto]||"").trim():"")});
+  }
+  return out;
+}
+function splitLine(line){
+  const res=[];let cur="",q=false;
+  for(let i=0;i<line.length;i++){const ch=line[i];
+    if(ch=='"'){ if(q&&line[i+1]=='"'){cur+='"';i++;} else q=!q; }
+    else if((ch==','||ch==';')&&!q){res.push(cur);cur="";}
+    else cur+=ch;}
+  res.push(cur);return res;
+}
+function resolveStage(v){
+  if(!v) return null;
+  const num=parseInt(v,10);
+  if(num>=1&&num<=STAGES.length) return num;
+  const low=v.toLowerCase();
+  const f=STAGES.find(s=>s.nome.toLowerCase().includes(low)||low.includes(s.nome.toLowerCase().split(' ')[0]));
+  return f?f.n:null;
+}
+function importCSV(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const data=parseCSV(r.result);
+    if(!data.length){ alert("Não encontrei pessoas válidas. Verifique se o arquivo tem as colunas: nome, cargo, etapa, foto_url, e se a etapa é um número de 1 a 8 ou o nome da etapa."); return; }
+    PEOPLE=data; current=0; render();
+    alert(`Pronto! ${data.length} pessoas importadas e distribuídas nas etapas.`);
+  };
+  r.readAsText(file,'utf-8');
+  ev.target.value="";
+}
+function downloadModel(){
+  const rows=[["nome","cargo","etapa","foto_url"],
+    ["Mariana Alves","Executiva Comercial","1",""],
+    ["Bruno Carvalho","Coord. de Planejamento","2",""],
+    ["Aline Souza","Analista de Recrutamento","3",""],
+    ["Renata Barros","Analista de Benefícios","4",""],
+    ["Marcos Tavares","Supervisor de Campo","5",""],
+    ["João Pereira","Promotor de Vendas","6","https://exemplo.com/foto.jpg"],
+    ["Beatriz Cunha","Analista de BI","7",""],
+    ["Sílvia Ramos","Analista Financeiro","8",""]];
+  const csv=rows.map(r=>r.map(c=>/[",;]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c).join(",")).join("\n");
+  const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download="modelo_album_jornada.csv";a.click();
+}
+
+function fitAlbum(){
+  const stage=document.querySelector('.stage');
+  if(!stage) return;
+  const s=Math.min((window.innerWidth-24)/980,(window.innerHeight-96)/680,1.8);
+  stage.style.transform='scale('+Math.max(0.3,s)+')';
+}
+window.addEventListener('resize',fitAlbum);
+render();
+fitAlbum();
+</script>
+</body>
+</html>
